@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <cn.berfy.framework.support.RefreshableView
+        android:id="@+id/refreshView"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="match_parent">
+
+        <cn.berfy.framework.support.views.FooterListview
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:cacheColorHint="#00000000"
+            android:divider="#00000000"></cn.berfy.framework.support.views.FooterListview>
+
+    </cn.berfy.framework.support.RefreshableView>
+
+</LinearLayout>

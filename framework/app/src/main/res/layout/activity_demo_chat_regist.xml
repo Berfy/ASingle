@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg"
+    android:padding="@dimen/dp_10">
+
+    <EditText
+        android:id="@+id/edt_user"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_10"
+        android:background="@drawable/bg_white_shape_line"
+        android:hint="请输入用户名"
+        android:inputType="number"
+        android:padding="@dimen/dp_10"
+        android:text=""
+        android:textColor="@color/black"
+        android:textSize="@dimen/sp_text_xl" />
+
+    <EditText
+        android:id="@+id/edt_pwd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_10"
+        android:background="@drawable/bg_white_shape_line"
+        android:hint="请输入密码"
+        android:inputType="number"
+        android:padding="@dimen/dp_10"
+        android:text=""
+        android:textColor="@color/black"
+        android:textSize="@dimen/sp_text_xl" />
+
+    <Button
+        android:id="@+id/btn_regist"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_50"
+        android:layout_marginTop="@dimen/dp_10"
+        android:background="@drawable/bg_blue_btn_selector"
+        android:text="注册"
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_text_xxl" />
+
+</LinearLayout>

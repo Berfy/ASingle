@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/dp_10">
+
+        <EditText
+            android:id="@+id/edt_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_white_shape_line"
+            android:padding="@dimen/dp_10"
+            android:text="afaf"
+            android:textColor="@color/black"
+            android:textSize="@dimen/sp_text_xl" />
+
+        <EditText
+            android:id="@+id/edt_sex"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_10"
+            android:background="@drawable/bg_white_shape_line"
+            android:inputType="number"
+            android:padding="@dimen/dp_10"
+            android:text="1"
+            android:textColor="@color/black"
+            android:textSize="@dimen/sp_text_xl" />
+
+        <EditText
+            android:id="@+id/edt_age"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_10"
+            android:background="@drawable/bg_white_shape_line"
+            android:inputType="number"
+            android:padding="@dimen/dp_10"
+            android:text="1"
+            android:textColor="@color/black"
+            android:textSize="@dimen/sp_text_xl" />
+
+        <Button
+            android:id="@+id/btn_show"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_50"
+            android:layout_marginTop="@dimen/dp_10"
+            android:background="@drawable/bg_blue_btn_selector"
+            android:text="显示输入框内容"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_text_xxl" />
+
+        <Button
+            android:id="@+id/btn_show1"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_50"
+            android:layout_marginTop="@dimen/dp_10"
+            android:background="@drawable/bg_blue_btn_selector"
+            android:text="显示手动设置内容"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_text_xxl" />
+
+        <TextView
+            android:id="@+id/tv_show"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_10"
+            android:text="adafaf"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_text_xl" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,6 +1,61 @@
-<resources>
-    <string name="app_name">framework</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">Looking</string>
+    <string name="title_back">返回</string>
+
     <!--提示-->
-    <string name="request_error">没有数据</string>
-    <string name="request_network_error">网络错误, 请确保你的手机已联网</string>
+    <string name="tip_delete_null">没有可删除的内容</string>
+    <string name="tip_setting_tip_null">内容不能为空</string>
+    <string name="tip_setting_clear_cache_suc">清空完成</string>
+    <string name="tip_setting_input_url">请输入正确的网址</string>
+
+    <!--标题-->
+    <string name="title_demo_list">Demo列表</string>
+    <string name="title_demo_slidingmenu">抽屉视图</string>
+    <string name="title_demo_path">模仿Path视图</string>
+    <string name="title_demo_rx">RxJava架构</string>
+    <string name="title_demo_mvp">MVP架构</string>
+    <string name="title_demo_chat_login">Chat登录</string>
+    <string name="title_demo_chat_regist">Chat注册</string>
+    <string name="title_demo_bluetooth">蓝牙设备搜索</string>
+    <string name="title_demo_qr">二维码扫描</string>
+    <string name="title_demo_car_plate">车牌扫描</string>
+
+    <!--首页-->
+    <string name="home_title_recommand">推荐</string>
+    <string name="home_title_content">内容</string>
+    <string name="home_search_hint">关键字搜索内容</string>
+
+    <!--设置-->
+    <string name="title_setting">设置</string>
+    <string name="title_edit">编辑</string>
+    <string name="title_delete">删除</string>
+    <string name="title_finish">完成</string>
+    <string name="title_setting_urls">管理网址</string>
+    <string name="title_setting_keywords">管理关键字</string>
+    <string name="title_setting_syncdata">同步数据</string>
+    <string name="title_setting_clear_cache">清空缓存</string>
+    <string name="title_setting_demo">Demo展示</string>
+    <string name="title_setting_no_syncdata">未同步过数据</string>
+    <string name="title_setting_syncdata_lastest">上次同步数据</string>
+    <string name="title_setting_hint_add_url">输入网址,例如:https://www.baidu.com</string>
+    <string name="title_setting_hint_add_keyword">输入关键字</string>
+    <string name="title_setting_add_url">添加网址</string>
+    <string name="title_setting_add_keyword">添加关键字</string>
+
+    <!--蓝牙-->
+    <string name="yicheng_status_not_connected">未连接</string>
+    <string name="yicheng_status_connected">已连接</string>
+    <string name="yicheng_status_connectting">连接中</string>
+    <string name="yicheng_status_connect">连接</string>
+    <string name="bluetooth_not_supported">您的手机不支持蓝牙</string>
+    <string name="bluetooth_open">已开启蓝牙</string>
+    <string name="bluetooth_not_open">蓝牙未开启</string>
+    <string name="bluetooth_disconnect">设备已断开</string>
+    <string name="bluetooth_searching">设备搜索中</string>
+    <string name="bluetooth_connectting">设备连接中</string>
+    <string name="bluetooth_connected">连接成功</string>
+    <string name="bluetooth_searching_timeout">未搜索到设备</string>
+    <string name="bluetooth_connect_timeout">连接失败</string>
+    <string name="yicheng_device_list">设备列表</string>
+    <string name="yicheng_device_connect_error">连接失败</string>
 </resources>
