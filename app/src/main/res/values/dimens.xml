@@ -1,28 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <dimen name="sp_text_xs">10sp</dimen>
-    <dimen name="sp_text_s">12sp</dimen>
-    <dimen name="sp_text_m">14sp</dimen>
-    <dimen name="sp_text_l">16sp</dimen>
-    <dimen name="sp_text_xl">18sp</dimen>
-    <dimen name="sp_text_xxl">20sp</dimen>
-    <dimen name="sp_text_xxxl">22sp</dimen>
-    <dimen name="sp_text_sl">30sp</dimen>
-    >
-    <dimen name="dp_title">50dp</dimen>
-    <dimen name="dp_100">100dp</dimen>
-    <dimen name="dp_90">90dp</dimen>
-    <dimen name="dp_80">80dp</dimen>
-    <dimen name="dp_70">70dp</dimen>
-    <dimen name="dp_60">60dp</dimen>
-    <dimen name="dp_50">50dp</dimen>
-    <dimen name="dp_40">40dp</dimen>
-    <dimen name="dp_30">30dp</dimen>
-    <dimen name="dp_20">20dp</dimen>
-    <dimen name="dp_10">10dp</dimen>
-    <dimen name="dp_15">15dp</dimen>
-    <dimen name="dp_5">5dp</dimen>
-
-
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
 </resources>

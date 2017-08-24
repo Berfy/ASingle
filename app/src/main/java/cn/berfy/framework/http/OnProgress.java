@@ -1,9 +1,11 @@
 package cn.berfy.framework.http;
 
 /**
+ * 
  * @ClassName: OnProgress
  * @Description: 进度回调
  * @author Berfy
+ *
  */
 public interface OnProgress {
 	/**

@@ -9,6 +9,10 @@ import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cn.berfy.framework.R;
+
+import static android.view.View.Z;
+
 /**
  * Created by Berfy on 2016/3/18.
  * 字段文字检查工具类
@@ -173,5 +177,71 @@ public class CheckUtil {
         String telRegex = "[1][3578]\\d{9}";//"[1]"代表第1位为数字1，"[358]"代表第二位可以为3、5、8中的一个，"\\d{9}"代表后面是可以是0～9的数字，有9位。
         if (TextUtils.isEmpty(mobiles)) return false;
         else return mobiles.matches(telRegex);
+    }
+
+    /**
+     * @param editMobile    输入的手机号
+     * @param requestMobile 获取验证码的手机号
+     * @param editCode      输入的验证码
+     * @param reqeustCode   获取的验证码
+     */
+    public static boolean checkMobileAndCodeEnable(String editMobile, String requestMobile, String editCode, String reqeustCode) {
+        if (!CheckUtil.isMobile(editMobile)) {//手机号不对
+            ToastUtil.getInstance().showToast(R.string.tip_mobile_error);
+        } else if (TextUtils.isEmpty(reqeustCode)) {//未获取验证码
+            ToastUtil.getInstance().showToast(R.string.tip_code_get_null);
+        } else if (TextUtils.isEmpty(editCode)) {//未输入验证码
+            ToastUtil.getInstance().showToast(R.string.tip_code_null);
+        } else if (!editCode.equals(reqeustCode)) {//验证码不匹配
+            ToastUtil.getInstance().showToast(R.string.tip_code_null);
+        } else if (!editMobile.equals(requestMobile)) {//手机号不匹配
+            ToastUtil.getInstance().showToast(R.string.tip_mobile_code_null);
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * //获取完整的域名
+     *
+     * @param text 获取浏览器分享出来的text文本
+     */
+    public static boolean checkUrl(String text) {
+        Pattern p = Pattern.compile("((http|ftp|https)://)(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\\&%_\\./-~-]*)?", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = p.matcher(text);
+        return matcher.find();
+    }
+
+    /**
+     * @param editMobile 输入的手机号
+     * @param editCode   输入的验证码
+     */
+    public static boolean checkMobileAndCodeEnableSimple(String editMobile, String editCode, boolean isTip) {
+        if (!CheckUtil.isMobile(editMobile)) {//手机号不对
+            if (isTip) {
+                ToastUtil.getInstance().showToast(R.string.tip_mobile_error);
+            }
+        } else if (TextUtils.isEmpty(editCode)) {//未输入验证码
+            if (isTip) {
+                ToastUtil.getInstance().showToast(R.string.tip_code_null);
+            }
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param number 检查车牌号
+     */
+    public static boolean isCarNumber(String number) {
+        boolean result = false;
+        if (number.length() == 7) {
+            Pattern p = Pattern.compile("^[\\u4e00-\\u9fa5]{1}[A-HJ-NP-Z0-9]{6}$", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = p.matcher(number);
+            result = matcher.find();
+        }
+        return result;
     }
 }

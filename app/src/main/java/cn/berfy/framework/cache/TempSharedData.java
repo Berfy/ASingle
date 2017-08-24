@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 import cn.berfy.framework.common.Constants;
+import cn.berfy.framework.utils.LogUtil;
 
 /**
  * 缓存
@@ -12,6 +13,8 @@ import cn.berfy.framework.common.Constants;
  * @author Berfy
  */
 public class TempSharedData {
+
+    private final String TAG = "TempSharedData";
     private SharedPreferences mSharedPreferences;
     private Editor mEditor;
 
@@ -30,7 +33,7 @@ public class TempSharedData {
 
     private TempSharedData(Context context) {
         mSharedPreferences = context.getSharedPreferences(
-                Constants.XML_TEMP, Context.MODE_PRIVATE);
+                Constants.XML_TEMP_CACEH, Context.MODE_PRIVATE);
         mEditor = mSharedPreferences.edit();
     }
 
@@ -43,13 +46,16 @@ public class TempSharedData {
     }
 
     public String getData(String key) {
-        return mSharedPreferences.getString(key, "");
+        String result = mSharedPreferences.getString(key, "");
+        LogUtil.e(TAG, "获取Data" + result);
+        return result;
     }
 
     /**
      * 保存json
      */
     public void save(String key, int value) {
+        LogUtil.e(TAG, "存储key" + key + " 值" + value);
         mEditor.putInt(key, value);
         mEditor.commit();
     }
@@ -58,7 +64,7 @@ public class TempSharedData {
         return mSharedPreferences.getInt(key, defaultInt);
     }
 
-    public void clearJsonTemp() {
+    public void clear() {
         mEditor.clear().commit();
     }
 

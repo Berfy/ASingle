@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 public class GsonUtil {
 
     private static GsonUtil mGsonUtil;
-	private Gson mGson;
+    private Gson mGson;
 
     public static GsonUtil getInstance() {
         if (null == mGsonUtil) {
@@ -16,19 +16,29 @@ public class GsonUtil {
         return mGsonUtil;
     }
 
-	private GsonUtil() {
-		mGson = new Gson();
-	}
+    private GsonUtil() {
+        mGson = new Gson();
+    }
 
     public <T> String toJson(T classType) {
         return mGson.toJson(classType);
     }
 
     public <T> T toClass(String json, Class<T> classname) {
-        return mGson.fromJson(json, classname);
+        try {
+            return mGson.fromJson(json, classname);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public <T> T toClass(String json, Type type) {
-        return mGson.fromJson(json, type);
+        try {
+            return mGson.fromJson(json, type);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

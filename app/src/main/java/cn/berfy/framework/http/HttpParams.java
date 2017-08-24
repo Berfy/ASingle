@@ -5,6 +5,10 @@ import org.apache.http.message.BasicNameValuePair;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Berfy
+ * 接口参数
+ */
 public class HttpParams {
 
     private List<BasicNameValuePair> mData = new ArrayList<BasicNameValuePair>();

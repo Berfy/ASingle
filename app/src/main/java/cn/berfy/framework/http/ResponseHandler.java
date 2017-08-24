@@ -3,14 +3,22 @@ package cn.berfy.framework.http;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.android.volley.VolleyError;
+
 import org.json.JSONObject;
+
 import cn.berfy.framework.R;
 import cn.berfy.framework.cache.TempSharedData;
 import cn.berfy.framework.utils.LogUtil;
 import cn.berfy.framework.utils.NetworkUtil;
 import cn.berfy.framework.utils.ToastUtil;
 
+/**
+ * 接口回调处理
+ *
+ * @author Berfy
+ */
 public abstract class ResponseHandler<T> {
 
     private Context mContext;
@@ -21,8 +29,10 @@ public abstract class ResponseHandler<T> {
      * 是否显示来自服务器的信息
      */
     protected boolean mShowErrorMsgFromServer = true;
+    protected boolean mShowSucMsgFromServer = false;
     protected boolean mIsSaveCache = false;
     protected boolean mIsLoadCache = false;
+    protected boolean mRequestAllData = false;
 
     public ResponseHandler(Context context) {
         mContext = context;
@@ -39,12 +49,22 @@ public abstract class ResponseHandler<T> {
      * @param isShowErrorMsgFromServer 是否先获取缓存
      */
     public ResponseHandler(Context context, RequestCallBack<T> callBack, boolean isSaveCache, boolean isLoadCache,
-                           boolean isShowErrorMsgFromServer) {
+                           boolean isShowSucMsgFromServer, boolean isShowErrorMsgFromServer) {
         mContext = context;
         mCallBack = callBack;
         mIsSaveCache = isSaveCache;
         mIsLoadCache = isLoadCache;
+        mShowSucMsgFromServer = isShowSucMsgFromServer;
         mShowErrorMsgFromServer = isShowErrorMsgFromServer;
+    }
+
+    /**
+     * @param isRequestAllData 是否获取全部json
+     */
+    public ResponseHandler(Context context, RequestCallBack<T> callBack, boolean isRequestAllData) {
+        mContext = context;
+        mCallBack = callBack;
+        mRequestAllData = isRequestAllData;
     }
 
     public void onProgress(int bytesWritten, int totalSize) {
@@ -70,7 +90,9 @@ public abstract class ResponseHandler<T> {
                 NetResponse netResponse = getResponse(json);
                 netResponse.netMsg.isCache = true;
                 onDataReturn(netResponse);
-                mCallBack.finish(netResponse);
+                if (mCallBack != null) {
+                    mCallBack.finish(netResponse);
+                }
             }
         }
     }
@@ -114,11 +136,11 @@ public abstract class ResponseHandler<T> {
         }
         if (mShowErrorMsgFromServer) {//默认显示，但是可以关闭提
             if (NetworkUtil.isHasNetWork(mContext)) {
-                ToastUtil.getInstance(mContext).showToast(
+                ToastUtil.getInstance().showToast(
                         mContext.getResources().getString(
                                 R.string.request_error));
             } else {
-                ToastUtil.getInstance(mContext).showToast(
+                ToastUtil.getInstance().showToast(
                         mContext.getResources().getString(
                                 R.string.request_network_error));
             }
@@ -134,7 +156,12 @@ public abstract class ResponseHandler<T> {
     public NetResponse<T> getResponse(String content) {
         NetResponse<T> result = new NetResponse<T>();
         result.netMsg = getBaseNetMessage(content);
-        result.content = getContent(result.netMsg.data);
+        if (mRequestAllData) {
+            result.content = getContent(content);
+            LogUtil.e("json返回", result.content.toString());
+        } else {
+            result.content = getContent(result.netMsg.data);
+        }
         return result;
     }
 
@@ -161,13 +188,20 @@ public abstract class ResponseHandler<T> {
             netMessage.data = json.optString("data");
         } catch (Exception e) {
             e.printStackTrace();
-            netMessage.msg = "服务器返回数据异常";
+            netMessage.msg = mContext.getResources().getString(
+                    R.string.request_error);
             netMessage.code = -1;
             Log.e("getBaseNetMessage", e.toString());
         }
         if (!TextUtils.isEmpty(netMessage.msg)) {
-            if (netMessage.code != 1) {
-                ToastUtil.getInstance(mContext).showToast(netMessage.msg);
+            if (netMessage.code == 1) {
+                if (mShowSucMsgFromServer) {//默认不显示，但是可以打开
+                    ToastUtil.getInstance().showToast(netMessage.msg);
+                }
+            } else {
+                if (mShowErrorMsgFromServer) {//默认显示，但是可以关闭提
+                    ToastUtil.getInstance().showToast(netMessage.msg);
+                }
             }
         }
         return netMessage;

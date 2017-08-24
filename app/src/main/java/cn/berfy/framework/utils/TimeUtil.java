@@ -1,7 +1,7 @@
 package cn.berfy.framework.utils;
 
 import java.io.File;
-import java.text.ParseException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -149,54 +149,28 @@ public class TimeUtil {
         return "1970-01-01";
     }
 
-    public static String[] WEEK = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五",
-            "星期六" };
-
-    /** 获取时间 */
-    public static String getTime(String time) {
+    /**
+     * 计算睡眠时长
+     */
+    public static String getSleepTime(String sleepTime, String wakeUpTime) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            Date date = new Date();
-            String formatTime = format.format(format.parse(time));
-            String nowTime = format.format(date);
-            int nowWeek;// 今天星期几
-            if (formatTime.equals(nowTime)) {// 今天
-                format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                Date nowDate = format.parse(time);
-                format = new SimpleDateFormat("HH:mm");
-                String str = format.format(nowDate);
-                return str;
+            Date d1 = df.parse("2015-09-25 " + wakeUpTime + ":00");
+            Date d2 = df.parse("2015-09-24 " + sleepTime + ":00");// 计算昨天睡眠和今日起床时间差
+            long diff = d1.getTime() - d2.getTime();
+            long days = diff / (1000 * 60 * 60 * 24);
+            long hours = (diff - days * (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
+            long minutes = (diff - days * (1000 * 60 * 60 * 24) - hours * (1000 * 60 * 60)) / (1000 * 60);
+            LogUtil.e("睡眠时间", "睡眠时间" + hours + "  " + minutes + "小数：" + (minutes / 60.00));
+            String sleepStr = (hours + minutes / 60.00) + "";
+            if ((minutes / 60.00) == 0) {
+                return hours + "";
             } else {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(date);
-                cal.add(Calendar.DAY_OF_MONTH, -6);// 获取7天前日期
-                int sevenDays = Integer.valueOf(format.format(cal.getTime())
-                        .replaceAll("-", ""));
-                if (sevenDays <= Integer
-                        .valueOf(formatTime.replaceAll("-", ""))) {
-                    // 如果在一周之内 获取星期几
-                    date = format.parse(time);
-                    cal = Calendar.getInstance();
-                    cal.setTime(date);
-                    Calendar cc = Calendar.getInstance();
-                    cc.setTime(format.parse(nowTime));
-                    cc.add(Calendar.DAY_OF_WEEK, -1);
-                    if (cc.get(Calendar.DAY_OF_WEEK) - 1 == cal
-                            .get(Calendar.DAY_OF_WEEK) - 1) {
-                        return "昨天";
-                    }
-                    return WEEK[cal.get(Calendar.DAY_OF_WEEK) - 1];
-                } else {
-                    // 如果时间大于一周显示年月日
-                    format = new SimpleDateFormat("yyyy-MM-dd");
-                    return format.format(format.parse(time));
-                }
+                return sleepStr;
             }
-
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
+        } catch (Exception e) {
             e.printStackTrace();
+            return "0";
         }
-        return "";
     }
 }

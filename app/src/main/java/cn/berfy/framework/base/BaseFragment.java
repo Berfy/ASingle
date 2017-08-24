@@ -18,20 +18,27 @@ public abstract class BaseFragment extends Fragment implements
 
     protected Activity mContext;
     private View mView;
+    private OnFragmentStatusListener mOnFragmentStatusListener;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mView = View.inflate(mContext, getContentViewLayoutId(), null);
-        if (null == mView) {
-            mView = getContentView();
-            if (null == mView) {
-                return null;
-            }
-        }
-        initViews();
-        LogUtil.i(getClass().getName(), "onCreateView()");
+        mView = View.inflate(mContext, initContentViewById(), null);
+        if (null != mOnFragmentStatusListener)
+            mOnFragmentStatusListener.onViewCreate();
         return mView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (null != mOnFragmentStatusListener)
+            mOnFragmentStatusListener.onActivityCreated();
+        initView();
+    }
+
+    public void setListener(OnFragmentStatusListener onFragmentStatusListener) {
+        mOnFragmentStatusListener = onFragmentStatusListener;
     }
 
     @Nullable
@@ -49,12 +56,9 @@ public abstract class BaseFragment extends Fragment implements
         super.onCreate(savedInstanceState);
         mContext = getActivity();
         initVariable();
-        LogUtil.i(getClass().getName(), "onCreate()");
     }
 
-    abstract protected View getContentView();
-
-    abstract protected int getContentViewLayoutId();
+    abstract protected int initContentViewById();
 
     /**
      * 初始化函数
@@ -64,16 +68,16 @@ public abstract class BaseFragment extends Fragment implements
     /**
      * 初始化视图
      */
-    abstract protected void initViews();
+    abstract protected void initView();
 
     /**
      * 点击事件
      */
-    abstract protected void doClickEvent(View v);
+    abstract protected void doClickEvent(int viewId);
 
     @Override
     public void onClick(View view) {
-        doClickEvent(view);
+        doClickEvent(view.getId());
     }
 
     private long mClickTime = 0;
@@ -93,32 +97,44 @@ public abstract class BaseFragment extends Fragment implements
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        LogUtil.i(getClass().getName(), "onActivityCreated()");
+    public void onStart() {
+        super.onStart();
+        if (null != mOnFragmentStatusListener)
+            mOnFragmentStatusListener.onStart();
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        LogUtil.i(getClass().getName(), "onViewCreated()");
+    public void onResume() {
+        super.onResume();
+        if (null != mOnFragmentStatusListener)
+            mOnFragmentStatusListener.onResume();
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        LogUtil.i(getClass().getName(), "onDestroyView()");
+    public void onPause() {
+        super.onPause();
+        if (null != mOnFragmentStatusListener)
+            mOnFragmentStatusListener.onPause();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        LogUtil.i(getClass().getName(), "onDetach()");
+    public void onStop() {
+        super.onStop();
+        if (null != mOnFragmentStatusListener)
+            mOnFragmentStatusListener.onStop();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        LogUtil.i(getClass().getName(), "onDestroy()");
+    public interface OnFragmentStatusListener {
+        void onViewCreate();
+
+        void onActivityCreated();
+
+        void onStart();
+
+        void onResume();
+
+        void onPause();
+
+        void onStop();
     }
 }

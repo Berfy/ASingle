@@ -63,7 +63,6 @@ public class MD5Utils {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             md5.update(info.getBytes("UTF-8"));
             byte[] encryption = md5.digest();
-
             StringBuffer strBuf = new StringBuffer();
             for (int i = 0; i < encryption.length; i++) {
                 if (Integer.toHexString(0xff & encryption[i]).length() == 1) {
@@ -72,7 +71,6 @@ public class MD5Utils {
                     strBuf.append(Integer.toHexString(0xff & encryption[i]));
                 }
             }
-
             return strBuf.toString().toUpperCase();
         } catch (NoSuchAlgorithmException e) {
             return "";

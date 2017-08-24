@@ -1,61 +1,38 @@
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">Looking</string>
-    <string name="title_back">返回</string>
-
+<resources>
     <!--提示-->
-    <string name="tip_delete_null">没有可删除的内容</string>
-    <string name="tip_setting_tip_null">内容不能为空</string>
-    <string name="tip_setting_clear_cache_suc">清空完成</string>
-    <string name="tip_setting_input_url">请输入正确的网址</string>
+    <string name="request_error">没有数据</string>
+    <string name="title_back">返回</string>
+    <string name="request_network_error">网络错误, 请确保你的手机已联网</string>
+    <!-- 提示-权限 -->
+    <string name="tip_permission_sd"> \"SD卡读写/存储权限\" </string>
+    <string name="tip_permission_camera"> \"相机权限\" </string>
+    <string name="tip_permission_callphone"> \"拨打电话/电话权限\" </string>
+    <string name="tip_permission_phone_info"> \"读取设备信息/电话权限\" </string>
+    <string name="tip_permission_gps"> \"获取GPS定位权限\" </string>
+    <string name="tip_permission_wifi"> \"获取WIFI状态权限\" </string>
+    <string name="tip_permission_contact"> \"读取联系人信息权限\" </string>
+    <string name="tip_permission_sms"> \"读取短信信息权限\" </string>
+    <string name="tip_permission_need">已被禁用，App运行需要此权限，即将为您跳转到应用页面，请点击 \"权限管理/权限\" 打开指定权限或信任此应用。</string>
+    <string name="tip_permission_audio"> \"录音（麦克风）权限\" </string>
+    <string name="msg_no_camera">没有系统相机</string>
+    <string name="tip_mobile_error">请输入正确的手机号</string>
+    <string name="tip_mobile_null">请输入手机号</string>
+    <string name="tip_newmobile_null">请输入新手机号</string>
+    <string name="tip_pwd_null">请输入密码</string>
+    <string name="tip_code_get_null">请先获取验证码</string>
+    <string name="tip_code_guoqi">验证码已过期</string>
+    <string name="tip_code_null">请输入验证码</string>
+    <string name="tip_code_error">验证码不正确</string>
+    <string name="tip_tologin">您还没有登录，请登录。</string>
+    <string name="tip_mobile_code_null">请输入获取验证码的手机号</string>
+    <string name="tip_no_more_result_data">没有更多内容</string>
+    <string name="loading">加载中....</string>
+    <string name="tip_choose_file_error">选择文件错误</string>
 
-    <!--标题-->
-    <string name="title_demo_list">Demo列表</string>
-    <string name="title_demo_slidingmenu">抽屉视图</string>
-    <string name="title_demo_path">模仿Path视图</string>
-    <string name="title_demo_rx">RxJava架构</string>
-    <string name="title_demo_mvp">MVP架构</string>
-    <string name="title_demo_chat_login">Chat登录</string>
-    <string name="title_demo_chat_regist">Chat注册</string>
-    <string name="title_demo_bluetooth">蓝牙设备搜索</string>
-    <string name="title_demo_qr">二维码扫描</string>
-    <string name="title_demo_car_plate">车牌扫描</string>
+    <string name="login_tip_code_send">已发送</string>
 
-    <!--首页-->
-    <string name="home_title_recommand">推荐</string>
-    <string name="home_title_content">内容</string>
-    <string name="home_search_hint">关键字搜索内容</string>
-
-    <!--设置-->
-    <string name="title_setting">设置</string>
-    <string name="title_edit">编辑</string>
-    <string name="title_delete">删除</string>
-    <string name="title_finish">完成</string>
-    <string name="title_setting_urls">管理网址</string>
-    <string name="title_setting_keywords">管理关键字</string>
-    <string name="title_setting_syncdata">同步数据</string>
-    <string name="title_setting_clear_cache">清空缓存</string>
-    <string name="title_setting_demo">Demo展示</string>
-    <string name="title_setting_no_syncdata">未同步过数据</string>
-    <string name="title_setting_syncdata_lastest">上次同步数据</string>
-    <string name="title_setting_hint_add_url">输入网址,例如:https://www.baidu.com</string>
-    <string name="title_setting_hint_add_keyword">输入关键字</string>
-    <string name="title_setting_add_url">添加网址</string>
-    <string name="title_setting_add_keyword">添加关键字</string>
-
-    <!--蓝牙-->
-    <string name="yicheng_status_not_connected">未连接</string>
-    <string name="yicheng_status_connected">已连接</string>
-    <string name="yicheng_status_connectting">连接中</string>
-    <string name="yicheng_status_connect">连接</string>
-    <string name="bluetooth_not_supported">您的手机不支持蓝牙</string>
-    <string name="bluetooth_open">已开启蓝牙</string>
-    <string name="bluetooth_not_open">蓝牙未开启</string>
-    <string name="bluetooth_disconnect">设备已断开</string>
-    <string name="bluetooth_searching">设备搜索中</string>
-    <string name="bluetooth_connectting">设备连接中</string>
-    <string name="bluetooth_connected">连接成功</string>
-    <string name="bluetooth_searching_timeout">未搜索到设备</string>
-    <string name="bluetooth_connect_timeout">连接失败</string>
-    <string name="yicheng_device_list">设备列表</string>
-    <string name="yicheng_device_connect_error">连接失败</string>
+    <!--下拉刷新-->
+    <string name="refreshing_text">正在刷新....</string>
+    <string name="refresh_down_text">下拉刷新</string>
+    <string name="refresh_release_text">松开可刷新</string>
 </resources>

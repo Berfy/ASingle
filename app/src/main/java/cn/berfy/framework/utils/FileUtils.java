@@ -8,13 +8,13 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -72,25 +72,34 @@ public class FileUtils {
         return false;
     }
 
-    public static void downLoadImage(final String imageURl, final OnDownloadImageListener onDownloadImageListener) {
-        Constants.EXECUTOR_SERVICE.execute(new Runnable() {
+    public static void downLoadImage(final Context context, final String imageURl, final OnDownloadImageListener onDownloadImageListener) {
+        Constants.EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
-                Bitmap bitmap = null;
                 try {
                     URL url = new URL(imageURl);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setDoInput(true);
                     connection.connect();
                     InputStream inputStream = connection.getInputStream();
-                    bitmap = BitmapFactory.decodeStream(inputStream);
+                    final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     inputStream.close();
-                    if (null != onDownloadImageListener)
-                        onDownloadImageListener.finish(bitmap);
-                } catch (Exception e) {
+                    ((Activity) context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (null != onDownloadImageListener)
+                                onDownloadImageListener.finish(bitmap);
+                        }
+                    });
+                } catch (final Exception e) {
                     // TODO: handle exception
-                    if (null != onDownloadImageListener)
-                        onDownloadImageListener.error(e.getMessage());
+                    ((Activity) context).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (null != onDownloadImageListener)
+                                onDownloadImageListener.error(e.getMessage());
+                        }
+                    });
                 }
             }
         });
@@ -179,7 +188,13 @@ public class FileUtils {
         }
 
         String path = "";
-        if (avaiableMedia()) {
+//        if (avaiableMedia(context) || !Environment.isExternalStorageRemovable()) {
+//            path = context.getExternalCacheDir().getPath();
+//        }
+//        else {
+//            path = context.getCacheDir().getPath();
+//        }
+        if (avaiableMedia(context)) {
             if (isHasFlashMemory()) {
                 path = Environment.getExternalStorageDirectory().getPath()
                         + FD_FLASH + "/" + derectory;
@@ -252,11 +267,12 @@ public class FileUtils {
     /**
      * @return
      */
-    public static boolean avaiableMedia() {
+    public static boolean avaiableMedia(Context context) {
         String status = Environment.getExternalStorageState();
         if (status.equals(Environment.MEDIA_MOUNTED)) {
             return true;
         } else {
+            ToastUtil.getInstance().showToast("没有内存卡");
             return false;
         }
     }
@@ -305,14 +321,39 @@ public class FileUtils {
         return true;
     }
 
-    public static void saveFile(Context context, String dir, String content) {
+    public static void saveFile(Context context, String content) {
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(getFilePath(context, dir + "volley_http_request_logs.txt"), true));//主要就是这个true
+            BufferedWriter out = new BufferedWriter(new FileWriter(getFilePath(context, DeviceUtil.getAppName(context) + "error.txt"), true));//主要就是这个true
             out.newLine();
             out.write(TimeUtil.getCurrentTime() + "====>" + content);
             out.close();
         } catch (IOException e) {
         }
+    }
+
+    // 只创建文�?
+    public static boolean createFolder(String path) {
+        try {
+            File file = new File(path);
+            if (file.exists()) {
+                return true;
+            } else {
+                File parentFile = file.getParentFile();
+                LogUtil.d("目录地址", "========>" + parentFile);
+                if (!parentFile.exists()) {
+                    LogUtil.d("目录", "========>" + parentFile);
+                    parentFile.mkdirs();
+                }
+                file.mkdir();
+            }
+            if (!file.exists()) {
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     // 只创建文�?
@@ -341,6 +382,9 @@ public class FileUtils {
 
     // 创建文件并写入字节
     public static boolean createFile(File file, byte[] buffer) {
+        if (null == file) {
+            return false;
+        }
         if (createFile(file)) {
             FileOutputStream fos;
             try {
@@ -360,28 +404,33 @@ public class FileUtils {
     /**
      * 文件存储 创建文件并写入流
      */
-    public static boolean createFile(File file, InputStream inputStream) {
-        if (createFile(file)) {
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(file);
-                byte buffer[] = new byte[1024];
-                while (true) {
-                    int stream = inputStream.read(buffer);
-                    if (stream == -1) {
-                        break;
+    public static boolean createFile(Context context, File file, InputStream inputStream) {
+        try {
+            if (createFile(file)) {
+                FileOutputStream fos = null;
+                try {
+                    fos = new FileOutputStream(file);
+                    byte buffer[] = new byte[1024];
+                    while (true) {
+                        int stream = inputStream.read(buffer);
+                        if (stream == -1) {
+                            break;
+                        }
+                        fos.write(buffer, 0, stream);
                     }
-                    fos.write(buffer, 0, stream);
+                    fos.flush();
+                    fos.close();
+                    inputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
                 }
-                fos.flush();
-                fos.close();
-                inputStream.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
+                return true;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /**
@@ -617,46 +666,5 @@ public class FileUtils {
             return tmpFile;
         }
 
-    }
-
-    /**
-     * 读取文本数据
-     *
-     * @param context 程序上下 * @param fileName 文件 * @return String, 读取到的文本内容，失败返回null
-     */
-    public static String readAssets(Context context, String fileName) {
-        InputStream is = null;
-        String content = null;
-        try {
-            is = context.getAssets().open(fileName);
-            if (is != null) {
-
-                byte[] buffer = new byte[1024];
-                ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
-                while (true) {
-                    int readLength = is.read(buffer);
-                    if (readLength == -1)
-                        break;
-                    arrayOutputStream.write(buffer, 0, readLength);
-                }
-                is.close();
-                arrayOutputStream.close();
-                content = new String(arrayOutputStream.toByteArray());
-
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-            content = null;
-        } finally {
-            try {
-                if (is != null)
-                    is.close();
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-        return content;
     }
 }

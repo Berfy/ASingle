@@ -5,11 +5,16 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewParent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+
+import cn.berfy.framework.support.badgeview.BadgeView;
 
 /**
  * 一些测量view的方法
@@ -18,12 +23,7 @@ import android.view.WindowManager;
  */
 public class ViewUtils {
 
-    private Context context;
-
-    public ViewUtils(Context context) {
-        // TODO Auto-generated constructor stub
-        this.context = context;
-    }
+    private static final String TAG = "ViewUtils";
 
     public static int getTitleBarHeight(Activity activity) {
         // TODO Auto-generated method stub
@@ -51,6 +51,18 @@ public class ViewUtils {
         activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
         wh[0] = dm.widthPixels;
         wh[1] = dm.heightPixels;
+        return wh;
+    }
+
+    /**
+     * 获取屏幕的宽高
+     *
+     * @param view
+     * @return
+     */
+    public static int[] getViewWH(View view) {
+        int[] wh = new int[2];
+        view.getLocationInWindow(wh);
         return wh;
     }
 
@@ -124,9 +136,9 @@ public class ViewUtils {
      *
      * @param context
      * @return
-     */
+     */;
     private static Display getDisplay(Context context) {
-        Display display = ((WindowManager) context.getApplicationContext()
+        Display display = ((WindowManager) context
                 .getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         return display;
     }
@@ -139,7 +151,12 @@ public class ViewUtils {
      */
     @SuppressWarnings("deprecation")
     public static int getScreenWidth(Context context) {
-        return getDisplay(context).getWidth();
+        if (null == context) {
+            return 0;
+        }
+        int width = getDisplay(context).getWidth();
+        LogUtil.e(TAG, "屏幕宽度" + width);
+        return width;
     }
 
     /**
@@ -150,7 +167,12 @@ public class ViewUtils {
      */
     @SuppressWarnings("deprecation")
     public static int getScreenHeight(Context context) {
-        return getDisplay(context).getHeight();
+        if (null == context) {
+            return 0;
+        }
+        int height = getDisplay(context).getHeight();
+        LogUtil.e(TAG, "屏幕高度" + height);
+        return height;
     }
 
     /**
@@ -183,6 +205,43 @@ public class ViewUtils {
         return px / getScreenScaledDensity(context) + 0.5f;
     }
 
+    /**
+     * @param width            红点大小
+     * @param height           红点大小
+     * @param horizontalMargin 横向边距
+     * @param verticalMargin   纵向边距
+     */
+    public static void showBadgeViewNoNum(Context context, BadgeView badgeView, int width, int height, int horizontalMargin, int verticalMargin) {
+        badgeView.setBadgePosition(BadgeView.POSITION_TOP_RIGHT);
+        badgeView.setWidth(dip2px(context, width));
+        badgeView.setHeight(dip2px(context, height));
+        badgeView.setBadgeMargin(dip2px(context, horizontalMargin), dip2px(context, verticalMargin));
+        badgeView.show();
+    }
+
+    /**
+     * @param num    数值 0的时候圆点不显示
+     * @param width  红点大小
+     * @param height 红点大小
+     */
+    public static void showBadgeView(Context context, BadgeView badgeView, int width, int height, int num) {
+        badgeView.setBadgePosition(BadgeView.POSITION_TOP_RIGHT);
+        if (width != 0 && height != 0) {
+            badgeView.setWidth(dip2px(context, width));
+            badgeView.setHeight(dip2px(context, height));
+        }
+        badgeView.setTextSize(10);
+        if (num < 10) {
+            badgeView.setPadding(dip2px(context, 5), dip2px(context, 2), dip2px(context, 5), dip2px(context, 2));
+        } else {
+            badgeView.setPadding(dip2px(context, 2), dip2px(context, 2), dip2px(context, 2), dip2px(context, 2));
+        }
+        badgeView.setGravity(Gravity.CENTER);
+        badgeView.setText(num + "");
+        badgeView.setBadgeMargin(dip2px(context, 2), dip2px(context, 2));
+        badgeView.show();
+    }
+
     public static void setMargins(View v, int l, int t, int r, int b) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v
@@ -200,5 +259,21 @@ public class ViewUtils {
         activity.getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    public static ViewGroup findRootView(View view) {
+        do {
+            if (view instanceof FrameLayout) {
+                if (view.getId() == android.R.id.content) {
+                    return (ViewGroup) view;
+                }
+            }
+            if (null != view) {
+                ViewParent viewParent = view.getParent();
+                view = viewParent instanceof View ? (View) viewParent : null;
+            }
+        } while (null != view);
+        LogUtil.e("未发现Framelayout", "aaa");
+        return null;
     }
 }

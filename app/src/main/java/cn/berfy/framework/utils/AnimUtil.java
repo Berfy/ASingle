@@ -3,7 +3,6 @@ package cn.berfy.framework.utils;
 import android.app.Activity;
 import cn.berfy.framework.R;
 
-
 /**
  * 界面切换跳转效果工具类 edit at 2012-8-30
  *

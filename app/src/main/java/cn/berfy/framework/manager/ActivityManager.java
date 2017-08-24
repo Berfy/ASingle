@@ -2,6 +2,7 @@ package cn.berfy.framework.manager;
 
 import android.app.Activity;
 import java.util.Stack;
+
 import cn.berfy.framework.utils.LogUtil;
 
 /**
@@ -54,6 +55,17 @@ public class ActivityManager {
         }
         LogUtil.d("跳转Activity", activity.getClass().getName());
         activityStack.add(activity);
+    }
+
+    public void popAllActivity() {
+        while (null != activityStack && activityStack.size() > 0) {
+            Activity activity = currentActivity();
+            if (null == activity) {
+                break;
+            }
+            popActivity(activity);
+        }
+        System.gc();
     }
 
     public void popAllActivityExceptOne(Class<?> cls) {

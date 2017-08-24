@@ -40,8 +40,7 @@ public class VolleyHttp {
     public static VolleyHttp getInstances() {
         if (null == mVolleyHttp) {
             try {
-                throw new NullPointerException(
-                        "未初始化VolleyHttp，请在Application中调用VolleyHttp.init(Context context)方法");
+                throw new NullPointerException("未初始化VolleyHttp，请在Application中调用VolleyHttp.init(Context context)方法");
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -58,8 +57,7 @@ public class VolleyHttp {
     public RequestQueue getRequestQueue() {
         if (null == mRequestQueue) {
             try {
-                throw new NullPointerException(
-                        "未初始化VolleyHttp，请在Application中调用VolleyHttp.init(Context context)方法");
+                throw new NullPointerException("未初始化VolleyHttp，请在Application中调用VolleyHttp.init(Context context)方法");
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -71,8 +69,7 @@ public class VolleyHttp {
     private boolean isNull() {
         if (null == getRequestQueue()) {
             try {
-                throw new NullPointerException(
-                        "未初始化VolleyHttp，请在Application中调用VolleyHttp.init(Context context)方法");
+                throw new NullPointerException("未初始化VolleyHttp，请在Application中调用VolleyHttp.init(Context context)方法");
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -82,7 +79,42 @@ public class VolleyHttp {
         return false;
     }
 
-    public void get(final String url, HttpParams httpParams, final VolleyCallBack callBack) {
+    public <T> void get(final String url, HttpParams httpParams, final ResponseHandler<T> responseHandler) {
+        if (!isNull()) {
+            final HttpParams post = null == httpParams ? new HttpParams() : httpParams;
+            responseHandler.start(url, post);
+            StringRequest jr = new StringRequest(Request.Method.GET, url + post.toString(), new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    String result = response.toString();
+                    responseHandler.finish(result);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.data != null) {
+                        VolleyError temperror = new VolleyError(new String(error.networkResponse.data));
+                        error = temperror;
+                        LogUtil.e("Volley错误POST (" + url + ")", error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                        FileUtils.saveFile(mContext, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    } else {
+                        LogUtil.e("Volley错误POST (" + url + ")", "网络错误");
+                        FileUtils.saveFile(mContext, "网络错误");
+                    }
+                    responseHandler.error(error);
+                }
+            });
+            jr.setRetryPolicy(new DefaultRetryPolicy(
+                            20 * 1000,//默认超时时间，应设置一个稍微大点儿的
+                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,//默认最大尝试次数
+                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                    )
+            );
+            mRequestQueue.add(jr);
+        }
+    }
+
+    public void get(final String url, HttpParams httpParams, final VolleyCallBack callBack, final boolean isShowLog) {
         if (!isNull()) {
             if (null == httpParams) {
                 httpParams = new HttpParams();
@@ -92,14 +124,16 @@ public class VolleyHttp {
                 @Override
                 public void onResponse(String response) {
                     String result = response.toString();
-                    LogUtil.e("Volley返回值GET" + url, result);
+                    if (isShowLog && response.length() < 1024 * 1024 * 4) {
+                        LogUtil.e("Volley返回值GET (" + url + ")", result);
+                    }
                     callBack.finish(response);
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     LogUtil.e("Volley错误GET" + url, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
-                    FileUtils.saveFile(mContext, mContext.getExternalCacheDir().getPath(), error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    FileUtils.saveFile(mContext, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
                     callBack.error(error);
                 }
             });
@@ -113,28 +147,27 @@ public class VolleyHttp {
         }
     }
 
-    public <T> void get(final String url, HttpParams httpParams, final ResponseHandler<T> responseHandler) {
+    public void get(final String url, HttpParams httpParams, final VolleyCallBack callBack) {
         if (!isNull()) {
-            responseHandler.start(url, httpParams);
+            if (null == httpParams) {
+                httpParams = new HttpParams();
+            }
+            LogUtil.e("Volley传参GET", url + httpParams.toString());
             StringRequest jr = new StringRequest(Request.Method.GET, url + httpParams.toString(), new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
                     String result = response.toString();
-                    responseHandler.finish(result);
+                    if (response.length() < 1024 * 1024 * 4) {
+                        LogUtil.e("Volley返回值GET (" + url + ")", result);
+                    }
+                    callBack.finish(response);
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    if (error.networkResponse != null && error.networkResponse.data != null) {
-                        VolleyError temperror = new VolleyError(new String(error.networkResponse.data));
-                        error = temperror;
-                        LogUtil.e("Volley错误POST (" + url + ")", error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
-                        FileUtils.saveFile(mContext, mContext.getExternalCacheDir().getPath(), error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
-                    } else {
-                        LogUtil.e("Volley错误POST (" + url + ")", "网络错误");
-                        FileUtils.saveFile(mContext, mContext.getExternalCacheDir().getPath(), "网络错误");
-                    }
-                    responseHandler.error(error);
+                    LogUtil.e("Volley错误GET" + url, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    FileUtils.saveFile(mContext, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    callBack.error(error);
                 }
             });
             jr.setRetryPolicy(new DefaultRetryPolicy(
@@ -150,7 +183,7 @@ public class VolleyHttp {
     public <T> void post(final String url, HttpParams httpParams, final ResponseHandler<T> responseHandler) {
         if (!isNull()) {
             final HttpParams post = null == httpParams ? new HttpParams() : httpParams;
-            responseHandler.start(url, httpParams);
+            responseHandler.start(url, post);
             StringRequest jr = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
@@ -164,10 +197,10 @@ public class VolleyHttp {
                         VolleyError temperror = new VolleyError(new String(error.networkResponse.data));
                         error = temperror;
                         LogUtil.e("Volley错误POST (" + url + ")", error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
-                        FileUtils.saveFile(mContext, mContext.getExternalCacheDir().getPath(), error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                        FileUtils.saveFile(mContext, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
                     } else {
                         LogUtil.e("Volley错误POST (" + url + ")", "网络错误");
-                        FileUtils.saveFile(mContext, mContext.getExternalCacheDir().getPath(), "网络错误");
+                        FileUtils.saveFile(mContext, "网络错误");
                     }
                     responseHandler.error(error);
                 }
@@ -194,21 +227,22 @@ public class VolleyHttp {
 
     public void post(final String url, HttpParams httpParams, final VolleyCallBack callBack) {
         if (!isNull()) {
-            final HttpParams post = null == httpParams ? new HttpParams() : httpParams;
-            LogUtil.e("Volley传参POST", url + httpParams.toString());
-            StringRequest jr = new StringRequest(Request.Method.POST, url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            String result = response.toString();
-                            LogUtil.e("Volley返回值POST (" + url + ")", result);
-                            callBack.finish(response);
-                        }
-                    }, new Response.ErrorListener() {
+            final HttpParams post = (null == httpParams ? new HttpParams() : httpParams);
+            LogUtil.e("Volley传参POST", url + post.toString());
+            StringRequest jr = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    String result = response.toString();
+                    if (response.length() < 1024 * 1024 * 4) {
+                        LogUtil.e("Volley返回值POST (" + url + ")", result);
+                    }
+                    callBack.finish(response);
+                }
+            }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     LogUtil.e("Volley错误POST (" + url + ")", error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
-                    FileUtils.saveFile(mContext, mContext.getExternalCacheDir().getPath(), error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    FileUtils.saveFile(mContext, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
                     callBack.error(error);
                 }
             }) {
@@ -217,11 +251,52 @@ public class VolleyHttp {
                         throws AuthFailureError {
                     // TODO Auto-generated method stub
                     Map<String, String> map = new HashMap<String, String>();
-                    for (BasicNameValuePair basicNameValuePair : post
-                            .getParamsList()) {
+                    for (BasicNameValuePair basicNameValuePair : post.getParamsList()) {
                         LogUtil.e("传参", basicNameValuePair.getName() + "=" + basicNameValuePair.getValue());
-                        map.put(basicNameValuePair.getName(),
-                                basicNameValuePair.getValue());
+                        map.put(basicNameValuePair.getName(), basicNameValuePair.getValue());
+                    }
+                    return map;
+                }
+            };
+            jr.setRetryPolicy(new DefaultRetryPolicy(
+                            20 * 1000,//默认超时时间，应设置一个稍微大点儿的
+                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,//默认最大尝试次数
+                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                    )
+            );
+            mRequestQueue.add(jr);
+        }
+    }
+
+    public void post(final String url, HttpParams httpParams, final VolleyCallBack callBack, final boolean isShowLog) {
+        if (!isNull()) {
+            final HttpParams post = (null == httpParams ? new HttpParams() : httpParams);
+            LogUtil.e("Volley传参POST", url + post.toString());
+            StringRequest jr = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    String result = response.toString();
+                    if (isShowLog && response.length() < 1024 * 1024 * 4) {
+                        LogUtil.e("Volley返回值GET (" + url + ")", result);
+                    }
+                    callBack.finish(response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    LogUtil.e("Volley错误POST (" + url + ")", error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    FileUtils.saveFile(mContext, error.getLocalizedMessage() + " " + error.getMessage() + "  " + error.getCause() + "  " + error.getStackTrace() + "  " + error.getNetworkTimeMs());
+                    callBack.error(error);
+                }
+            }) {
+                @Override
+                protected Map<String, String> getParams()
+                        throws AuthFailureError {
+                    // TODO Auto-generated method stub
+                    Map<String, String> map = new HashMap<String, String>();
+                    for (BasicNameValuePair basicNameValuePair : post.getParamsList()) {
+                        LogUtil.e("传参", basicNameValuePair.getName() + "=" + basicNameValuePair.getValue());
+                        map.put(basicNameValuePair.getName(), basicNameValuePair.getValue());
                     }
                     return map;
                 }

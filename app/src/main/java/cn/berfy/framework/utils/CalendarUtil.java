@@ -238,29 +238,6 @@ public class CalendarUtil {
         return day;
     }
 
-    /**
-     * 获取两个日期之间的天数
-     * @param starDate
-     * @param endDate
-     * @param pattern
-     * @return
-     */
-    public static int getGapCount(String starDate,String endDate, String pattern)
-    {
-        long to = 0;
-        long from = 0;
-        try {
-            SimpleDateFormat df = new SimpleDateFormat(pattern);
-            to = df.parse(endDate).getTime();
-            from = df.parse(starDate).getTime();
-
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-
-        return (int) ((to - from) / (1000 * 60 * 60 * 24));
-    }
-
     public static float getGapHour(String starDate, String endDate) {
         long to = 0;
         long from = 0;
@@ -514,53 +491,80 @@ public class CalendarUtil {
     }
 
     /**
-     * 获取患病的日期 例如"2年10天"
-     * @param startDate yyyy-MM-dd HH:mm:ss
-     * @param endDate yyyy-MM-dd HH:mm:ss
-     * @return
+     * 判断当前日期是星期几
+     * pTime 设置的需要判断的时间 格式如2012-09-08
+     * return 数字
      */
-    public static String getYearDay(String startDate, String endDate, String pattern){
-        int reYear = 0;
-        int reDays = 0;
-        String reStr = "";
-        Calendar start = string2calendar(startDate, pattern);
-        Calendar end = string2calendar(endDate, pattern);
-        //计算年
-        int year = end.get(Calendar.YEAR) - start.get(Calendar.YEAR);
-        if (year == 0){//同一年
-            reYear = 0;
-        }else {//不同年
-            int gapMonth = end.get(Calendar.MONTH) - start.get(Calendar.MONTH);
-            if (gapMonth == 0 ){//同月
-                int gapDay = end.get(Calendar.DATE) - start.get(Calendar.DATE);
-                if (gapDay < 0){//不到整年
-                    reYear = year - 1;
-                }else {//整年
-                    reYear = year;
-                }
-            }else if (gapMonth < 0){//还不到整年 减去一年
-                reYear = year - 1;
-            }else {//>0
-                reYear = year;
-            }
+    public static int getWeekInt(String pTime) {
+        int int_week = 0;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        try {
+            c.setTime(format.parse(pTime));
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        //计算天
-        start.add(Calendar.YEAR, reYear);
-        reDays = getGapCount(calendar2string(start, pattern), calendar2string(end, pattern), pattern);
-        if (reYear == 0){
-            if (reDays == 0){
-                reStr = 1 + "天";
-            }else {
-                reStr = reDays + "天";
-            }
-        }else {
-            if (reDays == 0){
-                reStr = reYear + "年";
-            }else{
-                reStr = reYear + "年" + reDays + "天";
-            }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 1) {
+            int_week = 0;
         }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 2) {
+            int_week = 1;
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 3) {
+            int_week = 2;
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 4) {
+            int_week = 3;
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 5) {
+            int_week = 4;
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 6) {
+            int_week = 5;
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 7) {
+            int_week = 6;
+        }
+        return int_week;
+    }
 
-        return  reStr;
+    /**
+     * 判断当前日期是星期几
+     * pTime 设置的需要判断的时间 格式如2012-09-08
+     * return 文字
+     */
+    public static String getWeekTxt(String pTime) {
+        String mWeekStr = "";
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        try {
+            c.setTime(format.parse(pTime));
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 1) {
+            mWeekStr = "星期天";
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 2) {
+            mWeekStr = "星期一";
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 3) {
+            mWeekStr = "星期二";
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 4) {
+            mWeekStr = "星期三";
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 5) {
+            mWeekStr = "星期四";
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 6) {
+            mWeekStr = "星期五";
+        }
+        if ((c.get(Calendar.DAY_OF_WEEK)) == 7) {
+            mWeekStr = "星期六";
+        }
+        return mWeekStr;
     }
 }

@@ -1,10 +1,12 @@
-package cn.berfy.framework;
+package cn.berfy.framework.utils;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
-
+import android.text.style.ForegroundColorSpan;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -25,7 +27,7 @@ public class StringUtil {
      * @param d
      * @return
      */
-    public static String day(int y, int m, int d) {
+    public static String dayToWhichWeek(int y, int m, int d) {
         if (m == 1 || m == 2) {
             m += 12;
             y--;
@@ -45,7 +47,7 @@ public class StringUtil {
      * @param d
      * @return
      */
-    public static int day1(int y, int m, int d) {
+    public static int dayToWhichWeekNum(int y, int m, int d) {
         if (m == 1 || m == 2) {
             m += 12;
             y--;
@@ -160,6 +162,26 @@ public class StringUtil {
     }
 
     /**
+     * 根据格式互转
+     *
+     * @param pattern
+     * @param date
+     * @return
+     */
+    public static String getFormatTimeFromPatternToPattern(String rawPattern, String pattern, String date) {
+        SimpleDateFormat sdf = new SimpleDateFormat(rawPattern);
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT+08:00"));
+        SimpleDateFormat newSdf = new SimpleDateFormat(pattern);
+        try {
+            return newSdf.format(sdf.parse(date));
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+    /**
      * 根据时间格式转换为时间戳
      *
      * @param pattern
@@ -170,15 +192,32 @@ public class StringUtil {
         SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         sdf.setTimeZone(TimeZone.getTimeZone("GMT+08:00"));
         try {
-            long newTime = sdf.parse(
-                    "".equals(time) ? System.currentTimeMillis() + "" : time)
-                    .getTime();
-            return newTime;
+            if (!TextUtils.isEmpty(time)) {
+                return sdf.parse(time).getTime();
+            }
         } catch (ParseException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return 0;
+    }
+
+    /**
+     * 根据时间格式转换为时间戳
+     *
+     * @param pattern
+     * @param time
+     * @return
+     */
+    public static Date getFormatTimeToDate(String pattern, String time) {
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT+08:00"));
+        try {
+            Date newTime = sdf.parse(time);
+            return newTime;
+        } catch (ParseException e) {
+            return new Date();
+        }
     }
 
     /**
@@ -214,14 +253,22 @@ public class StringUtil {
      * 设置保留2个小数位，四舍五入
      */
     public static String fomatScale(float num) {
+        if (num == 0) {
+            return "0.00";
+        }
         String[] nums = (num + "").split("\\.");
         if (nums.length > 1) {
             if (nums[1].length() == 1) {
                 return num + "0";
             }
         }
-        DecimalFormat fnum = new DecimalFormat("##0.00");
-        String result = fnum.format(num);
+        String result = num + "";//默认返回原值
+        try {
+            DecimalFormat fnum = new DecimalFormat("##0.00");
+            result = fnum.format(num);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -229,12 +276,6 @@ public class StringUtil {
      * 设置保留1个小数位，四舍五入
      */
     public static String fomatScale1(float num) {
-        String[] nums = (num + "").split("\\.");
-        if (nums.length > 1) {
-            if (nums[1].length() == 1) {
-                return num + "0";
-            }
-        }
         DecimalFormat fnum = new DecimalFormat("##0.0");
         String result = fnum.format(num);
         return result;
@@ -259,25 +300,46 @@ public class StringUtil {
     }
 
     /**
-     * 设置保留2个小数位，四舍五入
+     * 设置保留2个小数位，四舍五入 (去掉多余的0)
      */
-    public static String fomatDoubleToString(double num) {
+    public static String getMoneyString(double num) {
         BigDecimal b = new BigDecimal(num);
         double f1 = b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-        return subZeroAndDot(f1+"");
+        return subZeroAndDot(f1 + "");
+    }
+
+    /**
+     * 设置保留scale个小数位，四舍五入 (去掉多余的0)
+     *
+     * @param num
+     * @param scale 小数点数量
+     */
+    public static String getMoneyString(double num, int scale) {
+        BigDecimal b = new BigDecimal(num);
+        double f1 = b.setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+        return subZeroAndDot(f1 + "");
     }
 
     /**
      * 使用java正则表达式去掉多余的.与0
+     *
      * @param s
      * @return
      */
-    public static String subZeroAndDot(String s){
-        if(s.indexOf(".") > 0){
+    public static String subZeroAndDot(String s) {
+        if (s.indexOf(".") > 0) {
             s = s.replaceAll("0+?$", "");//去掉多余的0
             s = s.replaceAll("[.]$", "");//如最后一位是.则去掉
         }
         return s;
+    }
+
+    /**
+     * @param num 设置保留个小数位，四舍五入 (不去掉多余的0)
+     */
+    public static String getMoneyString2(double num) {
+        DecimalFormat df = new DecimalFormat("######0.00");
+        return df.format(num);
     }
 
     /**
@@ -323,58 +385,6 @@ public class StringUtil {
         return "";
     }
 
-    public static String fixUnreadTime(long timestamp) {
-        try {
-            Calendar now = Calendar.getInstance();
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(timestamp);
-            long gapSeconds = (System.currentTimeMillis() - timestamp) / 1000;
-            int gapMinutes = (int) (gapSeconds / 60);
-            int gapHours = gapMinutes / 60;
-            int gapDays = gapHours / 24;
-            if (gapSeconds < 60) {//小于一分钟
-                return "刚刚";
-            } else if (gapSeconds < 60 * 60) {//小于一小时
-                return (gapSeconds / 60)
-                        + "分钟前";
-            } else {
-                if (now.get(Calendar.YEAR) == c.get(Calendar.YEAR)) {//同年
-                    if (now.get(Calendar.MONTH) == c.get(Calendar.MONTH)) {//同月
-                        if (now.get(Calendar.DATE) == c.get(Calendar.DATE)) {//同日
-                            if (now.get(Calendar.MINUTE) > c.get(Calendar.MINUTE)) {
-                                return now.get(Calendar.HOUR_OF_DAY)
-                                        - c.get(Calendar.HOUR_OF_DAY) + "小时前";
-                            } else {
-                                return now.get(Calendar.HOUR_OF_DAY)
-                                        - c.get(Calendar.HOUR_OF_DAY) - 1 + "小时前";
-                            }
-
-                        } else {//不同日
-                            if (c.get(Calendar.DATE) == now.get(Calendar.DATE) - 1) {//昨天
-                                SimpleDateFormat sdf = new SimpleDateFormat("昨天 HH:mm");
-                                return sdf.format(c.getTime());
-                            } else {//几天前
-                                return new SimpleDateFormat("yyyy-MM-dd HH:mm")
-                                        .format(c.getTime());
-                            }
-                        }
-                    } else {//不同月
-
-                        return new SimpleDateFormat("yyyy-MM-dd HH:mm")
-                                .format(c.getTime());
-                    }
-                } else {//不同年
-                    return new SimpleDateFormat("yyyy-MM-dd HH:mm")
-                            .format(c.getTime());
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
-
-    }
-
     /**
      * 处理时间(毫秒格式 转换为n天前)
      *
@@ -382,7 +392,11 @@ public class StringUtil {
      * @return
      */
     public static String fixTime(long timestamp) {
+        LogUtil.e("时间", getFormatTime("yyyy-MM-dd", timestamp));
         try {
+            if (timestamp == 0) {//不识别
+                return "";
+            }
             if (System.currentTimeMillis() - timestamp < 1 * 60 * 1000) {//小于一分钟
                 return "刚刚";
             } else if (System.currentTimeMillis() - timestamp < 60 * 60 * 1000) {//小于一小时
@@ -460,12 +474,267 @@ public class StringUtil {
         return splits;
     }
 
+    /**
+     * 实现文本复制功能
+     */
     public static void copy(Context context, String text) {
         ClipData clip = ClipData.newPlainText("simple text", text);
         try {
             ((ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(clip);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 检查时间格式是否正确
+     *
+     * @param str     时间格式字符
+     * @param pattern 时间格式
+     */
+    public static boolean isValidDate(String str, String pattern) {
+        boolean convertSuccess = true;
+        // 指定日期格式为四位年/两位月份/两位日期，注意yyyy/MM/dd区分大小写；
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        try {
+            // 设置lenient为false. 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
+            format.setLenient(false);
+            format.parse(str);
+        } catch (ParseException e) {
+            // e.printStackTrace();
+            // 如果throw java.text.ParseException或者NullPointerException，就说明格式不对
+            convertSuccess = false;
+        }
+        return convertSuccess;
+    }
+
+    /**
+     * 局部文字变色
+     */
+    public static SpannableString getColorTextByKeywords(String text, int colorId, String keyword) {
+        SpannableString ss = new SpannableString(text);
+        int start = text.indexOf(keyword);
+        int end = start + keyword.length();
+        if (start != -1 && end != -1) {
+            //用颜色标记文本
+            ss.setSpan(new ForegroundColorSpan(colorId), start, end,
+                    //setSpan时需要指定的 flag,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE(前后都不包括).
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return ss;
+    }
+
+    /**
+     * 将毫秒数转换成时分秒格式
+     * time 毫秒
+     */
+    public static String getSecondToHourMinutes(long time) {
+        long second = time / 1000;
+        long hour = second / 60 / 60;
+        long minute = (second - hour * 60 * 60) / 60;
+        long sec = (second - hour * 60 * 60) - minute * 60;
+
+        String rHour = "";
+        String rMin = "";
+        String rSs = "";
+        // 时
+        if (hour < 10) {
+            rHour = "0" + hour;
+        } else {
+            rHour = hour + "";
+        }
+        // 分
+        if (minute < 10) {
+            rMin = "0" + minute;
+        } else {
+            rMin = minute + "";
+        }
+        // 秒
+        if (sec < 10) {
+            rSs = "0" + sec;
+        } else {
+            rSs = sec + "";
+        }
+        return rHour + ":" + rMin + ":" + rSs;
+    }
+
+    /**
+     * 将毫秒数换算成x天x时x分x秒x毫秒
+     * time 毫秒
+     */
+    public static String getSecondToDayHourMinutes(long ms) {
+        int ss = 1000;
+        int mi = ss * 60;
+        int hh = mi * 60;
+        int dd = hh * 24;
+
+        long day = ms / dd;
+        long hour = (ms - day * dd) / hh;
+        long minute = (ms - day * dd - hour * hh) / mi;
+        long second = (ms - day * dd - hour * hh - minute * mi) / ss;
+        long milliSecond = ms - day * dd - hour * hh - minute * mi - second * ss;
+
+        String strDay = day < 10 ? "0" + day : "" + day;
+        String strHour = hour < 10 ? "0" + hour : "" + hour;
+        String strMinute = minute < 10 ? "0" + minute : "" + minute;
+        String strSecond = second < 10 ? "0" + second : "" + second;
+        return strDay + ":" + strHour + ":" + strMinute + ":" + strSecond;
+    }
+
+    /**
+     * 将毫秒数换算成x天x时x分x秒x毫秒
+     * time 毫秒
+     */
+    public static String getLongTimeToDayHourMinutes(long ms) {
+        int ss = 1000;
+        int mi = ss * 60;
+        int hh = mi * 60;
+        int dd = hh * 24;
+
+        long day = ms / dd;
+        long hour = (ms - day * dd) / hh;
+        long minute = (ms - day * dd - hour * hh) / mi;
+        long second = (ms - day * dd - hour * hh - minute * mi) / ss;
+        long milliSecond = ms - day * dd - hour * hh - minute * mi - second * ss;
+        StringBuffer sb = new StringBuffer();
+        String dayText = "";
+        String hourText = "";
+        String minutesText = "";
+        String secondText = "";
+        if (day > 0) {
+            sb.append(day < 10 ? "0" + day : "" + day);
+            sb.append("天");
+        }
+        if (day > 0) {
+            sb.append("  ");
+        }
+        if (day > 0 || hour > 0) {
+            sb.append(hour < 10 ? "0" + hour : "" + hour);
+            sb.append(":");
+        }
+        if (minute > 0 || day > 0 || hour > 0) {
+            sb.append(minute < 10 ? "0" + minute : "" + minute);
+            sb.append(":");
+        }
+        sb.append(second < 10 ? "0" + second : "" + second);
+        sb.append("");
+        return sb.toString();
+    }
+
+
+    /**
+     * 求邀请码 糖友汇内容
+     * namestr 商品名
+     * mEndTime 剩余时间秒
+     */
+    public static String getRequestInviteCodeSC(String namestr, long mEndTime) {
+        String[] endtime = StringUtil.getSecondToDayHourMinutes(mEndTime * 1000).split(":");
+        if (endtime[0].equals("00")) {
+            return "土豪快来发邀请码!" + namestr + "，还有" + endtime[1] + "小时"
+                    + endtime[2] + "分" + endtime[3] + "秒团购结束。";
+        } else {
+            return "土豪快来发邀请码!" + namestr + "，还有" + endtime[0] + "天" + endtime[1] + "小时"
+                    + endtime[2] + "分" + endtime[3] + "秒团购结束。";
+        }
+    }
+
+    /**
+     * 求邀请码、邀请好友参团（未参团情况下） 分享Text
+     * mEndTime 剩余时间秒
+     * mSoldCount 已售多少件
+     * mDetail 商品介绍
+     */
+    public static String getRequestInviteCodeText(long mEndTime, int mSoldCount, String mDetail) {
+        String[] endtime = StringUtil.getSecondToDayHourMinutes(mEndTime * 1000).split(":");
+        if (endtime[0].equals("00")) {
+            if (TextUtils.isEmpty(mDetail)) {
+                return "剩余" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒结束。已售" + mSoldCount + "件。";
+            } else {
+                return "剩余" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒结束。已售" + mSoldCount + "件。" + mDetail;
+            }
+        } else {
+            if (TextUtils.isEmpty(mDetail)) {
+                return "剩余" + endtime[0] + "天" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒结束。已售" + mSoldCount + "件。";
+            } else {
+                return "剩余" + endtime[0] + "天" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒结束。已售" + mSoldCount + "件。" + mDetail;
+            }
+        }
+    }
+
+    /**
+     * 邀请好友参团 （未参团情况下）分享title
+     * namestr 商品名
+     * purchasePricestr 团购价格
+     */
+    public static String getInviteFriendsTitle(String namestr, double purchasePricestr) {
+        return namestr + "。限时秒杀价" + getMoneyString(purchasePricestr) + "元，快来抢购吧";
+    }
+
+    /**
+     * 邀请好友参团 （已参团情况下）title
+     * namestr 商品名
+     * inviteCodestr 团购邀请码
+     */
+    public static String getInviteFriendsTitleready(String namestr, String inviteCodestr) {
+        return "我的邀请码" + inviteCodestr + "！" + namestr + "在立减，快来抢购吧";
+    }
+
+    /**
+     * 邀请好友参团 （已参团情况下）Text
+     * mPurchasePricestr 商品团购价
+     * mEndTime 团购剩余时间
+     * mSoldcount 已售多少件
+     * mDetail 商品介绍
+     */
+    public static String getInviteFriendsTextready(double mPurchasePricestr, long mEndTime, int mSoldcount, String mDetail) {
+        String[] endtime = StringUtil.getSecondToDayHourMinutes(mEndTime * 1000).split(":");
+        if (endtime[0].equals("00")) {
+            if (TextUtils.isEmpty(mDetail)) {
+                return "限时秒杀价" + getMoneyString(mPurchasePricestr) + "元，剩余" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3]
+                        + "秒结束。已售" + mSoldcount + "件。";
+            } else {
+                return "限时秒杀价" + getMoneyString(mPurchasePricestr) + "元，剩余" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3]
+                        + "秒结束。已售" + mSoldcount + "件。" + mDetail;
+            }
+        } else {
+            if (TextUtils.isEmpty(mDetail)) {
+                return "限时秒杀价" + getMoneyString(mPurchasePricestr) + "元，剩余" + endtime[0] + "天" + endtime[1] + "小时" + endtime[2] + "分"
+                        + endtime[3] + "秒结束。已售" + mSoldcount + "件。";
+            } else {
+                return "限时秒杀价" + getMoneyString(mPurchasePricestr) + "元，剩余" + endtime[0] + "天" + endtime[1] + "小时" + endtime[2] + "分"
+                        + endtime[3] + "秒结束。已售" + mSoldcount + "件。" + mDetail;
+            }
+        }
+    }
+
+    /**
+     * 邀请好友参团 （未参团情况下）糖友汇内容
+     * namestr 商品名
+     * mEndTime 团购剩余时间
+     */
+    public static String getInviteFriendsSC(String namestr, long mEndTime) {
+        String[] endtime = StringUtil.getSecondToDayHourMinutes(mEndTime * 1000).split(":");
+        if (endtime[0].equals("00")) {
+            return namestr + "。还有" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒团购结束，快来抢购吧！";
+        } else {
+            return namestr + "。还有" + endtime[0] + "天"
+                    + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒团购结束，快来抢购吧！";
+        }
+    }
+
+    /**
+     * 邀请好友参团 （已参团情况下）糖友汇内容
+     * namestr 商品名
+     * inviteCodestr 团购邀请码
+     */
+    public static String getInviteFriendsSCready(String namestr, String inviteCodestr, long mEndTime) {
+        String[] endtime = StringUtil.getSecondToDayHourMinutes(mEndTime * 1000).split(":");
+        if (endtime[0].equals("00")) {
+            return "我团购了" + namestr + "，邀请码是" + inviteCodestr + "。支付输入邀请码，团购享立减。还有"
+                    + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒团购结束，快来抢购吧！";
+        } else {
+            return "我团购了" + namestr + "，邀请码是" + inviteCodestr + "。支付输入邀请码，团购享立减。还有"
+                    + endtime[0] + "天" + endtime[1] + "小时" + endtime[2] + "分" + endtime[3] + "秒团购结束，快来抢购吧！";
         }
     }
 

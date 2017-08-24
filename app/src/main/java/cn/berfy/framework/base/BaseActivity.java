@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -14,30 +15,42 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 
+import com.google.gson.Gson;
+
+import butterknife.ButterKnife;
 import cn.berfy.framework.cache.TempSharedData;
 import cn.berfy.framework.manager.ActivityManager;
 import cn.berfy.framework.utils.AnimUtil;
 import cn.berfy.framework.utils.DeviceUtil;
-import cn.berfy.framework.utils.GsonUtil;
+import cn.berfy.framework.utils.FragmentUtil;
 import cn.berfy.framework.utils.LogUtil;
+import cn.berfy.framework.utils.PopupWindowUtil;
 import cn.berfy.framework.utils.ToastUtil;
 
 public abstract class BaseActivity extends FragmentActivity implements
         OnClickListener {
 
     protected Activity mContext;
+    private Gson mGson;
     private TempSharedData mTempSharedData;
     private boolean mIsClickTwoText;//点击两次退出
-    private static final int ACTIVITY_RESUME = 0;
-    private static final int ACTIVITY_STOP = 1;
-    private static final int ACTIVITY_PAUSE = 2;
-    private static final int ACTIVITY_DESTROY = 3;
-    private int mActivityState;
+    private int mActivityState;//Activity当前生命周期状态
+    private FragmentUtil mFragmentUtil;
+    public static final int ACTIVITY_ONCREATE = 0;
+    public static final int ACTIVITY_START = 1;
+    public static final int ACTIVITY_RESTART = 2;
+    public static final int ACTIVITY_RESUME = 3;
+    public static final int ACTIVITY_STOP = 4;
+    public static final int ACTIVITY_PAUSE = 5;
+    public static final int ACTIVITY_DESTROY = 6;
+    protected Handler mHandler = new Handler();
+    private PopupWindowUtil mPopupWindowUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LogUtil.i(getClass().getName(), "onCreate()");
+        mActivityState = ACTIVITY_ONCREATE;
         // 加入栈管理
         ActivityManager.getInstance().pushActivity(this);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -45,10 +58,22 @@ public abstract class BaseActivity extends FragmentActivity implements
         if (null != getParent()) {
             mContext = getParent();
         }
+        mFragmentUtil = new FragmentUtil(this);
+        mPopupWindowUtil = new PopupWindowUtil(mContext);
         initVariable();
-        initContentView();
+        View view = initContentView();
+        if (null == view) {
+            view = View.inflate(mContext, initContentViewById(), null);
+        }
+        setContentView(view);
+        ButterKnife.bind(this);
+        LogUtil.e("base底层", getClass().getName() + "    setContentView" + initContentViewById());
         initView();
     }
+
+    abstract protected View initContentView();
+
+    abstract protected int initContentViewById();
 
     /**
      * 让App字体不随系统改变
@@ -73,15 +98,46 @@ public abstract class BaseActivity extends FragmentActivity implements
     /**
      * Gson
      */
-    protected GsonUtil getGson() {
-        return GsonUtil.getInstance();
+    protected Gson getGson() {
+        if (null == mGson) {
+            mGson = new Gson();
+        }
+        return mGson;
+    }
+
+    protected void showLoading() {
+        mPopupWindowUtil.showLoading();
+    }
+
+    protected void dismissLoading() {
+        mPopupWindowUtil.dismiss();
+    }
+
+    public void update(int frameLayoutResId, Fragment fragment) {
+        mFragmentUtil.update(frameLayoutResId, fragment);
+    }
+
+    public int getActivityState() {
+        return mActivityState;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mActivityState = ACTIVITY_START;
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        mActivityState = ACTIVITY_RESTART;
     }
 
     @Override
     protected void onResume() {
         // TODO Auto-generated method stub
         super.onResume();
-        mActivityState =ACTIVITY_RESUME;
+        mActivityState = ACTIVITY_RESUME;
         LogUtil.i(getClass().getName(), "onResume()");
     }
 
@@ -89,15 +145,19 @@ public abstract class BaseActivity extends FragmentActivity implements
     protected void onPause() {
         // TODO Auto-generated method stub
         super.onPause();
-        mActivityState =ACTIVITY_PAUSE;
+        mActivityState = ACTIVITY_PAUSE;
         LogUtil.i(getClass().getName(), "onPause()");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mActivityState =ACTIVITY_STOP;
+        mActivityState = ACTIVITY_STOP;
         LogUtil.i(getClass().getName(), "onStop()");
+    }
+
+    protected void setClickTwoExit(boolean isClickTwoText) {
+        mIsClickTwoText = isClickTwoText;
     }
 
     /**
@@ -106,23 +166,13 @@ public abstract class BaseActivity extends FragmentActivity implements
     protected abstract void initVariable();
 
     /**
-     * 设置页面布局
-     */
-    protected abstract void initContentView();
-
-    /**
      * 对页面控件进行设置
      */
     protected abstract void initView();
 
-    /**方便设置本页面是否自动点击两次退出，比如主页面使用*/
-    protected void setExitActivityWithClickTwice(boolean isExit) {
-        mIsClickTwoText = isExit;
-    }
-
     @Override
     public void onClick(View v) {
-        doClickAction(v.getId());
+        doClickEvent(v.getId());
     }
 
     /**
@@ -130,32 +180,21 @@ public abstract class BaseActivity extends FragmentActivity implements
      *
      * @param viewId
      */
-    protected abstract void doClickAction(int viewId);
+    protected abstract void doClickEvent(int viewId);
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (mIsClickTwoText) {
                 exitProgram();
+            } else {
+                doBackAction();
             }
-            doBackAction();
+            return false;
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    /**
-     * 退出App
-     */
-    public void exitProgram() {
-        if (!mIsExit) {
-            mIsExit = true;
-            ToastUtil.getInstance(mContext).showToast("再按一次\"退出\"程序");
-            exitHandler.sendEmptyMessageDelayed(0, 2000);
-        } else {
-            ActivityManager.getInstance().popAllActivityExceptOne(null);//清空所有activity
-            System.gc();
-        }
-    }
 
     private boolean mIsExit;
 
@@ -164,6 +203,20 @@ public abstract class BaseActivity extends FragmentActivity implements
             mIsExit = false;
         }
     };
+
+    /**
+     * 退出App
+     */
+    public void exitProgram() {
+        if (!mIsExit) {
+            mIsExit = true;
+            ToastUtil.getInstance().showToast("再按一次\"退出\"程序");
+            exitHandler.sendEmptyMessageDelayed(0, 2000);
+        } else {
+            ActivityManager.getInstance().popAllActivityExceptOne(null);//清空所有activity
+            System.gc();
+        }
+    }
 
     private long mClickTime = 0;
 
@@ -209,7 +262,7 @@ public abstract class BaseActivity extends FragmentActivity implements
      * @param msg
      */
     protected void showToast(String msg) {
-        ToastUtil.getInstance(mContext).showToast(msg);
+        ToastUtil.getInstance().showToast(msg);
     }
 
     /**
@@ -218,7 +271,7 @@ public abstract class BaseActivity extends FragmentActivity implements
      * @param resId
      */
     protected void showToast(int resId) {
-        ToastUtil.getInstance(mContext).showToast(resId);
+        ToastUtil.getInstance().showToast(resId);
     }
 
     @Override
@@ -232,7 +285,7 @@ public abstract class BaseActivity extends FragmentActivity implements
     protected void onDestroy() {
         super.onDestroy();
         ActivityManager.getInstance().popActivity(this);
-        mActivityState =ACTIVITY_DESTROY;
+        mActivityState = ACTIVITY_DESTROY;
         LogUtil.i(getClass().getName(), "onDestroy()");
     }
 }
